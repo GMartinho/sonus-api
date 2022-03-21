@@ -36,7 +36,7 @@ export class UserController {
 
   @Delete(':id')
   @ApiOkResponse({type: User})
-  remove(@Param('id') id: string) {
-    return this.userService.remove(id);
+  async remove(@Param('id') id: string) {
+    return new User(await this.userService.remove(id));
   }
 }
