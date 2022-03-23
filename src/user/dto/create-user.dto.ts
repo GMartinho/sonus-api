@@ -5,12 +5,12 @@ export class CreateUserDto {
     @IsNotEmpty()
     @Length(2, 255)
     @ApiProperty()
-    firstName: string;
+    first_name: string;
 
     @IsNotEmpty()
     @Length(2, 255)
     @ApiProperty()
-    lastName: string;
+    last_name: string;
 
     @IsNotEmpty()
     @Length(7, 320)
