@@ -1,13 +1,16 @@
+import { ConfigService } from '@nestjs/config';
 import { Injectable } from '@nestjs/common';
 import { S3 } from 'aws-sdk';
 
 @Injectable()
 export class FileService {
-  async upload(key: string, buffer: Buffer) {
+  constructor(private readonly configService: ConfigService) {}
+
+  async upload(key: string, file: Express.Multer.File, bucket_name: string) {
     const s3 = new S3();
     return await s3.upload({
-      Bucket: process.env.BUCKET_NAME!,
-      Body: buffer,
+      Bucket: this.configService.get(bucket_name),
+      Body: file.buffer,
       Key: key,
     }).promise();
   }
@@ -15,7 +18,7 @@ export class FileService {
   async retrieve(key: string) {
     const s3 = new S3();
     return await s3.getObject({
-      Bucket: process.env.BUCKET_NAME!,
+      Bucket: this.configService.get('BUCKET_NAME'),
       Key: key,
     }).promise();
   }
@@ -23,7 +26,7 @@ export class FileService {
   async modify(key: string, buffer: Buffer) {
     const s3 = new S3();
     return await s3.putObject({
-      Bucket: process.env.BUCKET_NAME!,
+      Bucket: this.configService.get('BUCKET_NAME'),
       Body: buffer,
       Key: key,
     }).promise();

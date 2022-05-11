@@ -1,4 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { Transform } from "class-transformer";
 import { IsNotEmpty, Length } from "class-validator";
 
 export class CreateFolderDto {
@@ -8,13 +9,13 @@ export class CreateFolderDto {
     name: string;
 
     @ApiProperty()
-    image?: Buffer;
+    image?: string;
 
     @IsNotEmpty()
     @ApiProperty()
     user_id: string;
 
     @ApiProperty()
-    parent_folder_id?: number;
+    parent_folder_id?: string;
 
 }
