@@ -15,7 +15,8 @@ export class CreateFolderDto {
     @ApiProperty()
     user_id: string;
 
-    @ApiProperty()
-    parent_folder_id?: string;
+    @ApiProperty({type: Number})
+    @Transform(({value}) => value.toNumber)
+    parent_id?: number;
 
 }
