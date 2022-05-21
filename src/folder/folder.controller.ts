@@ -8,7 +8,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Folder } from './entities/folder.entity';
 import { Express } from 'express';
 
-@Controller('users/:user_id/folders')
+@Controller('folders')
 export class FolderController {
   constructor(private readonly folderService: FolderService) {}
 
@@ -25,13 +25,13 @@ export class FolderController {
   }
 
   @Get()
-  findAll(@Query() findManyFolderDto: FindManyFolderDto, @Param('user_id') user_id: string) {
-    return this.folderService.findAll(findManyFolderDto, user_id);
+  findAll(@Query() findManyFolderDto: FindManyFolderDto) {
+    return this.folderService.findAll(findManyFolderDto);
   }
 
   @Get(':id')
-  findOne(@Param('user_id') user_id: string, @Param('id') id: string) {
-    return this.folderService.findOne(user_id, +id);
+  findOne(@Param('id') id: string) {
+    return this.folderService.findOne(+id);
   }
 
   @Patch(':id')

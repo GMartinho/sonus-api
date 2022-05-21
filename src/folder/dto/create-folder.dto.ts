@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Transform } from "class-transformer";
+import { Type } from "class-transformer";
 import { IsNotEmpty, Length } from "class-validator";
 
 export class CreateFolderDto {
@@ -16,7 +16,6 @@ export class CreateFolderDto {
     user_id: string;
 
     @ApiProperty({type: Number})
-    @Transform(({value}) => value.toNumber)
+    @Type(() => Number)
     parent_id?: number;
-
 }

@@ -9,6 +9,8 @@ import { Folder } from './entities/folder.entity';
 import { GetObjectOutput, PutObjectOutput } from 'aws-sdk/clients/s3';
 import { FileStorageResponse } from 'src/file-storage/interfaces/file-storage-response.interface';
 import { Prisma } from '@prisma/client';
+import { findManyCursorConnection } from '@devoxa/prisma-relay-cursor-connection';
+import { FindManyFolderDto } from './dto/find-many-folder.dto';
 
 @Injectable()
 export class FolderService {
@@ -20,24 +22,22 @@ export class FolderService {
 
     try {
 
-      const parent_id = createFolderDto.parent_id ? Number(createFolderDto.parent_id) : null;
-
-      const data = {
-        ...createFolderDto,
-        parent_id
-      }
-
       if (image) {
-        const [imgKey, imgLocation] = await this.fileStorage.create(createFolderDto.user_id, image, this.bucket);
-        data.image = imgKey;
-        console.log(imgLocation);
+        return await this.fileStorage.create(createFolderDto.user_id, image, this.bucket).then(
+          async ([fileKey, fileLocation]) => {
+            createFolderDto.image = fileKey;
+            const createdFolder =  await this.prisma.folder.create({
+              data: createFolderDto
+            });
+            return {...createdFolder, image: fileLocation}
+        }).catch((error) => {
+          throw error;
+        });
       }
-      
-      const folder = await this.prisma.folder.create({
-        data: data
-      });
 
-      return folder;
+      return await this.prisma.folder.create({
+        data: createFolderDto
+      });
 
     } catch(error) {
 
@@ -47,67 +47,32 @@ export class FolderService {
 
   }
 
-  async findAll(params: {
-    take?: number;
-    cursor?: Prisma.folderWhereUniqueInput;
-    name?: string;
-  }, user_id: string): Promise<any> /*Promise<Folder[]>*/ {
+  async findAll({ name, folder_id = null, take = 10, cursor = new Date() }: FindManyFolderDto): Promise<Folder[]> {
 
-    const { take, cursor, name } = params;
+    const where: Prisma.folderWhereInput = name ? { name : { contains: name } } : undefined;
 
-    const folders = await this.prisma.folder.findMany({
-      //take,
-      //skip: 1,
-      //cursor,
-      where : {
-        name: {
-          contains: name
+    return await this.prisma.folder.findMany({
+        take,
+        where: {
+          parent_id: folder_id,
+          created_at: {
+            lt: cursor
+          },
+          ...where
         },
-      }
-    });
-
-    //const teste = await this.fileStorageService.get(folders[0].image, this.bucket);
-
-    //const foldersImages = await this.fileStorageService.list(user_id, this.bucket);
-
-    // folders.map(async (folder) => {
-    //   const { image } = folder;
-
-    //   try {
-
-    //     const imageObj = image ? await this.fileStorageService.get(image, this.bucket) : null;
-
-    //     const imageBuffer = imageObj.Body;
-
-    //     return {
-    //       image: imageBuffer,
-    //       ...folder
-    //     }
-
-    //   } catch (e) {
-    //     throw e;
-    //   }
-      
-      
-    // });
-
-    console.log(folders);
-
-    //return foldersImages;
+        orderBy: {
+          created_at: 'desc'
+        }
+      });
   }
 
-  async findOne(user_id: uuid, id: number) {
+
+  async findOne(id: number) {
     const folder = await this.prisma.folder.findUnique({ 
       where: { 
         id: id
       } 
     });
-
-    if (folder.image) {
-      const imagePath = folder.image ? `${folder.user_id}/${folder.image}` : null;
-      //const imageFile = await this.fileStorageService.get(imagePath, this.bucket);
-      //folder.image = imageFile.Body.toString('base64');
-    }
 
     return folder
   }
