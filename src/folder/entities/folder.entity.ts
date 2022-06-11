@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { folder } from "@prisma/client";
 
-export class Folder implements folder {
+export class FolderEntity implements folder {
     @ApiProperty()
     id: number;
 
@@ -23,7 +23,7 @@ export class Folder implements folder {
     @ApiProperty()
     image: string;
 
-    constructor(partial: Partial<Folder>) {
+    constructor(partial: Partial<FolderEntity>) {
         this.name = partial.name;
         this.image = partial.image ? partial.image.split(':')[1] : null;
         this.parent_id = partial.parent_id;

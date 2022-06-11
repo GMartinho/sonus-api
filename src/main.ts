@@ -34,6 +34,7 @@ async function bootstrap() {
     .setTitle('Sonus API')
     .setDescription('Node.js REST API built with NestJS for the Sonus project. Where your compositions come from the heart to the recording.')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, swagger);

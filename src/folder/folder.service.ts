@@ -5,12 +5,13 @@ import { CreateFolderDto } from './dto/create-folder.dto';
 import { UpdateFolderDto } from './dto/update-folder.dto';
 import { v4 as uuid } from 'uuid';
 import { CreateFolderWithImageDto } from './dto/create-folder-with-image.dto';
-import { Folder } from './entities/folder.entity';
+import { FolderEntity } from './entities/folder.entity';
 import { GetObjectOutput, PutObjectOutput } from 'aws-sdk/clients/s3';
 import { FileStorageResponse } from 'src/file-storage/interfaces/file-storage-response.interface';
 import { Prisma } from '@prisma/client';
 import { findManyCursorConnection } from '@devoxa/prisma-relay-cursor-connection';
 import { FindManyFolderDto } from './dto/find-many-folder.dto';
+import { UserEntity } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class FolderService {
@@ -18,16 +19,21 @@ export class FolderService {
 
   constructor(private readonly prisma: PrismaService, private readonly fileStorage: FileStorageService) {}
 
-  async create(createFolderDto: CreateFolderDto, image?: Express.Multer.File) : Promise<Folder> {
+  async create(createFolderDto: CreateFolderDto, user_id: string, image?: Express.Multer.File) : Promise<FolderEntity> {
 
     try {
 
+      console.log(user_id);
+
       if (image) {
-        return await this.fileStorage.create(createFolderDto.user_id, image, this.bucket).then(
+        return await this.fileStorage.create(user_id, image, this.bucket).then(
           async ([fileKey, fileLocation]) => {
             createFolderDto.image = fileKey;
             const createdFolder =  await this.prisma.folder.create({
-              data: createFolderDto
+              data: {
+                ...createFolderDto,
+                user_id: user_id
+              }
             });
             return {...createdFolder, image: fileLocation}
         }).catch((error) => {
@@ -36,7 +42,10 @@ export class FolderService {
       }
 
       return await this.prisma.folder.create({
-        data: createFolderDto
+        data: {
+          ...createFolderDto,
+          user_id: user_id
+        }
       });
 
     } catch(error) {
@@ -47,7 +56,7 @@ export class FolderService {
 
   }
 
-  async findAll({ name, folder_id = null, take = 10, cursor = new Date() }: FindManyFolderDto): Promise<Folder[]> {
+  async findAll({ name, folder_id = null, take = 10, cursor = new Date() }: FindManyFolderDto): Promise<FolderEntity[]> {
 
     const where: Prisma.folderWhereInput = name ? { name : { contains: name } } : undefined;
 

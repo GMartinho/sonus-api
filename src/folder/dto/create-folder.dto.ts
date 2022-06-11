@@ -11,10 +11,6 @@ export class CreateFolderDto {
     @ApiProperty()
     image?: string;
 
-    @IsNotEmpty()
-    @ApiProperty()
-    user_id: string;
-
     @ApiProperty({type: Number})
     @Type(() => Number)
     parent_id?: number;
