@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { S3 } from 'aws-sdk';
-import { DeleteObjectRequest, GetObjectRequest, PutObjectRequest, PutObjectOutput, GetObjectOutput, DeleteObjectOutput, ListObjectsRequest, ListObjectsOutput, ListObjectsV2Request } from 'aws-sdk/clients/s3';
+import { DeleteObjectRequest, GetObjectRequest, PutObjectRequest, PutObjectOutput, GetObjectOutput, DeleteObjectOutput, ListObjectsRequest, ListObjectsOutput, ListObjectsV2Request, ListObjectsV2Output } from 'aws-sdk/clients/s3';
 
 @Injectable()
 export class AwsS3Service {
@@ -16,7 +16,7 @@ export class AwsS3Service {
     return await s3.upload(params).promise();
   }
 
-  async list(prefix: string, bucket: string): Promise<ListObjectsOutput> {
+  async list(prefix: string, bucket: string): Promise<ListObjectsV2Output> {
     const s3: S3 = new S3();
 
     const params: ListObjectsV2Request = {

@@ -1,11 +1,13 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { folder } from "@prisma/client";
+import { Exclude } from "class-transformer";
 
 export class FolderEntity implements folder {
     @ApiProperty()
     id: number;
 
     @ApiProperty()
+    @Exclude()
     user_id: string;
 
     @ApiProperty({ type: Number })
@@ -24,10 +26,6 @@ export class FolderEntity implements folder {
     image: string;
 
     constructor(partial: Partial<FolderEntity>) {
-        this.name = partial.name;
-        this.image = partial.image ? partial.image.split(':')[1] : null;
-        this.parent_id = partial.parent_id;
-        this.created_at = partial.created_at;
-        this.updated_at = partial.updated_at;
+        Object.assign(this, partial);
     }
 }

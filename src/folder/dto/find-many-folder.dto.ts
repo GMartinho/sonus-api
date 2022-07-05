@@ -3,23 +3,23 @@ import { Prisma } from '@prisma/client';
 import { Type } from "class-transformer";
 
 export class FindManyFolderDto {
-    @ApiProperty()
+    @ApiProperty({required: false})
     @Type(() => Number)
     skip?: number;
 
-    @ApiProperty()
+    @ApiProperty({required: false})
     @Type(() => Number)
     take?: number;
 
-    @ApiProperty()
+    @ApiProperty({required: false})
     @Type(() => Date)
     cursor?: Date;
 
-    @ApiProperty()
+    @ApiProperty({required: false})
     name?: string;
 
-    @ApiProperty()
+    @ApiProperty({required: false})
     @Type(() => Number)
-    folder_id?: number;
+    parent_id?: number;
 
 }

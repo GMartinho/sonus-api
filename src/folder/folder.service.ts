@@ -23,11 +23,9 @@ export class FolderService {
 
     try {
 
-      console.log(user_id);
-
       if (image) {
-        return await this.fileStorage.create(user_id, image, this.bucket).then(
-          async ([fileKey, fileLocation]) => {
+        return await this.fileStorage.create(user_id, image, this.bucket, createFolderDto.parent_id).then(
+          async ([fileKey, fileName]) => {
             createFolderDto.image = fileKey;
             const createdFolder =  await this.prisma.folder.create({
               data: {
@@ -35,7 +33,7 @@ export class FolderService {
                 user_id: user_id
               }
             });
-            return {...createdFolder, image: fileLocation}
+            return {...createdFolder, image: fileName}
         }).catch((error) => {
           throw error;
         });
@@ -56,14 +54,14 @@ export class FolderService {
 
   }
 
-  async findAll({ name, folder_id = null, take = 10, cursor = new Date() }: FindManyFolderDto): Promise<FolderEntity[]> {
+  async findAll({ name, parent_id = null, take = 10, cursor = new Date() }: FindManyFolderDto, user_id: string): Promise<FolderEntity[]> {
 
     const where: Prisma.folderWhereInput = name ? { name : { contains: name } } : undefined;
 
     return await this.prisma.folder.findMany({
         take,
         where: {
-          parent_id: folder_id,
+          parent_id: parent_id,
           created_at: {
             lt: cursor
           },
@@ -72,18 +70,39 @@ export class FolderService {
         orderBy: {
           created_at: 'desc'
         }
+      }).then(async (response) => {
+        const fileObjects = await this.fileStorage.findAll(user_id, this.bucket, parent_id);
+
+        console.log(fileObjects);
+
+        response.map((folder) => {
+          if (folder.image) {
+            console.log(folder);
+          }
+        });
+        return response;
       });
   }
 
 
   async findOne(id: number) {
-    const folder = await this.prisma.folder.findUnique({ 
+
+    return await this.prisma.folder.findUnique({ 
       where: { 
         id: id
       } 
-    });
+    }).then(
+      async (response) => {
+        if (response.image) {
+          const img = await this.fileStorage.findOne(response.image, this.bucket);
+          console.log(img);
+        }
 
-    return folder
+        return response;
+
+    }).catch((error) => {
+      throw error;
+    });
   }
 
   update(id: number, updateFolderDto: UpdateFolderDto, image?: Express.Multer.File) {

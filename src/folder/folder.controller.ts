@@ -33,12 +33,17 @@ export class FolderController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOkResponse({type: [FolderEntity]})
-  findAll(@Query() findManyFolderDto: FindManyFolderDto) {
-    return this.folderService.findAll(findManyFolderDto);
+  async findAll(@Query() findManyFolderDto: FindManyFolderDto, @User('id') user_id: string) : Promise<FolderEntity[]> {
+    const folders = await this.folderService.findAll(findManyFolderDto, user_id);
+    return folders.map((folder) => new FolderEntity(folder));
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOkResponse({type: FolderEntity})
   findOne(@Param('id') id: string) {
     return this.folderService.findOne(+id);

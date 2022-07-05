@@ -26,7 +26,7 @@ export class UserEntity implements user_account {
     updated_at: Date;
 
     constructor(partial: Partial<UserEntity>) {
-        Object.assign(this, partial)
+        Object.assign(this, partial);
     }
 
 }
