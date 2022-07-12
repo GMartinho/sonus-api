@@ -12,6 +12,7 @@ import { Prisma } from '@prisma/client';
 import { findManyCursorConnection } from '@devoxa/prisma-relay-cursor-connection';
 import { FindManyFolderDto } from './dto/find-many-folder.dto';
 import { UserEntity } from 'src/user/entities/user.entity';
+import { readdirSync } from 'fs';
 
 @Injectable()
 export class FolderService {
@@ -25,7 +26,7 @@ export class FolderService {
 
       if (image) {
         return await this.fileStorage.create(user_id, image, this.bucket, createFolderDto.parent_id).then(
-          async ([fileKey, fileName]) => {
+          async ([fileKey, fileLocation]) => {
             createFolderDto.image = fileKey;
             const createdFolder =  await this.prisma.folder.create({
               data: {
@@ -33,7 +34,10 @@ export class FolderService {
                 user_id: user_id
               }
             });
-            return {...createdFolder, image: fileName}
+            return {
+              ...createdFolder, 
+              image: fileLocation
+            }
         }).catch((error) => {
           throw error;
         });
@@ -70,17 +74,18 @@ export class FolderService {
         orderBy: {
           created_at: 'desc'
         }
-      }).then(async (response) => {
+      }).then(async (folders) => {
         const fileObjects = await this.fileStorage.findAll(user_id, this.bucket, parent_id);
 
-        console.log(fileObjects);
+        folders.map((folder) => {
+          const { image } = folder;
 
-        response.map((folder) => {
-          if (folder.image) {
-            console.log(folder);
-          }
+          folder.image = image ? fileObjects[image] : null;
+          
+          return folder;
         });
-        return response;
+
+        return folders;
       });
   }
 
@@ -92,21 +97,62 @@ export class FolderService {
         id: id
       } 
     }).then(
-      async (response) => {
-        if (response.image) {
-          const img = await this.fileStorage.findOne(response.image, this.bucket);
-          console.log(img);
-        }
+      async (folder) => {
+        const { image } = folder;
 
-        return response;
+        return { 
+          ...folder,
+          image: image ? await this.fileStorage.findOne(image, this.bucket) : null,
+        }
 
     }).catch((error) => {
       throw error;
     });
   }
 
-  update(id: number, updateFolderDto: UpdateFolderDto, image?: Express.Multer.File) {
-    return `This action updates a #${id} folder`;
+  async update(id: number, updateFolderDto: UpdateFolderDto, user_id: string, image?: Express.Multer.File) {
+
+    try {
+
+      if (image) {
+        return await this.fileStorage.update(user_id, image, this.bucket, updateFolderDto.parent_id).then(
+          async ([fileKey, fileLocation]) => {
+            const updatedFolder =  await this.prisma.folder.update({
+              where: {
+                id: id
+              },
+              data: {
+                ...updateFolderDto,
+                user_id: user_id
+              }
+            });
+
+            updateFolderDto.image = fileKey;
+
+            return {
+              ...updatedFolder, 
+              image: fileLocation
+            }
+        }).catch((error) => {
+          throw error;
+        });
+      }
+
+      return await this.prisma.folder.update({
+        where: {
+          id: id
+        },
+        data: {
+          ...updateFolderDto,
+          user_id: user_id
+        }
+      });
+
+    } catch(error) {
+
+      throw error;
+
+    }
   }
 
   remove(id: number) {

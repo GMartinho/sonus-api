@@ -7,6 +7,8 @@ import { AwsS3Service } from 'src/aws-s3/aws-s3.service';
 
 @Injectable()
 export class FileStorageService {
+  private readonly bucketProvider: string = 'BUCKET_PROVIDER';
+
   constructor(private readonly configService: ConfigService, private readonly awsS3Service: AwsS3Service) {}
 
   async create(user_id: string, file: Express.Multer.File, bucket: string, parent_id?: number): Promise<string[]> {
@@ -17,8 +19,8 @@ export class FileStorageService {
     const bucketEnv: string = this.configService.get(bucket);
     
     return await this.awsS3Service.upload(fileKey, buffer, bucketEnv).then((response) => {
-      const fileName = response['key'].split(':')[1];
-      return [fileKey, fileName];
+      const fileLocation = response['Location'];
+      return [fileKey, fileLocation];
     }).catch((error) => {
       throw new HttpException('The service responsible to persist your file is currently unavailable', HttpStatus.SERVICE_UNAVAILABLE);
     });
@@ -30,14 +32,14 @@ export class FileStorageService {
 
     const bucketEnv: string = this.configService.get(bucket);
 
+    const bucketProviderEnv: string = this.configService.get(this.bucketProvider);
+
     const fileObjects: ListObjectsV2Output = await this.awsS3Service.list(folderPrefix, bucketEnv);
 
     let folderImages = {};
 
-    console.log(fileObjects);
-
     for(let i = 0; i < fileObjects.Contents.length; i++) {
-      folderImages[fileObjects.Contents[i].Key] = fileObjects.Contents[i];
+      folderImages[fileObjects.Contents[i].Key] = `https://${bucketEnv}.${bucketProviderEnv}/${fileObjects.Contents[i].Key}`;
     }
 
     return folderImages;
@@ -46,13 +48,28 @@ export class FileStorageService {
   async findOne(key: string, bucket: string) {
     const bucketEnv: string = this.configService.get(bucket);
 
+    const bucketProviderEnv: string = this.configService.get(this.bucketProvider);
+
     const fileObject: GetObjectOutput = await this.awsS3Service.get(key, bucketEnv);
 
-    return fileObject.Body;
+    const fileUrl: string = fileObject ? `https://${bucketEnv}.${bucketProviderEnv}/${key}` : null;
+
+    return fileUrl;
   }
 
-  async update(id: number, updateAwsS3Dto: any) {
-    return `This action updates a #${id} awsS3`;
+  async update(user_id: string, file: Express.Multer.File, bucket: string, parent_id?: number) {
+    const { buffer, originalname } = file;
+
+    const fileKey: string =  parent_id ? `${user_id}/${parent_id}/${uuid()}:${originalname}` : `${user_id}/${uuid()}:${originalname}`;
+
+    const bucketEnv: string = this.configService.get(bucket);
+
+    return await this.awsS3Service.put(fileKey, buffer, bucketEnv).then((response) => {
+        const fileLocation = response['Location'];
+        return [fileKey, fileLocation];
+      }).catch((error) => {
+        throw new HttpException('The service responsible to persist your file is currently unavailable', HttpStatus.SERVICE_UNAVAILABLE);
+      });
   }
 
   async remove(id: number) {

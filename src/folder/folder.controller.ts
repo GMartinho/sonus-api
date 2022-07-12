@@ -45,7 +45,7 @@ export class FolderController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({type: FolderEntity})
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: number, @User('id') user_id: string) {
     return this.folderService.findOne(+id);
   }
 
@@ -53,8 +53,16 @@ export class FolderController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({type: FolderEntity})
-  update(@Param('id') id: string, @Body() updateFolderDto: UpdateFolderDto) {
-    return this.folderService.update(+id, updateFolderDto);
+  async update(@Param('id') id: string, @Body() updateFolderDto: UpdateFolderDto, @User('id') user_id: string, @UploadedFile() image?: Express.Multer.File) {
+
+    return new FolderEntity(
+      await this.folderService.update(
+        +id,
+        updateFolderDto,
+        user_id, 
+        image
+      )
+    );
   }
 
   @Delete(':id')

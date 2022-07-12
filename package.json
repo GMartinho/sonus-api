@@ -1,10 +1,13 @@
 {
   "name": "sonus-api",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "Node.js REST API built with NestJS for the Sonus project. Where your compositions come from the heart to the recording.",
+  "author": "Gabriel Meirelles Martinho",
   "private": true,
   "license": "UNLICENSED",
+  "engines": {
+    "node": "16.14.0"
+  },
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
