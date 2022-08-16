@@ -1,9 +1,10 @@
 import { ConfigService } from '@nestjs/config';
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { S3 } from 'aws-sdk';
-import { DeleteObjectRequest, GetObjectRequest, PutObjectRequest, PutObjectOutput, GetObjectOutput, DeleteObjectOutput, ListObjectsRequest, ListObjectsV2Output } from 'aws-sdk/clients/s3';
+import { GetObjectOutput, ListObjectsV2Output } from 'aws-sdk/clients/s3';
 import { v4 as uuid } from 'uuid';
 import { AwsS3Service } from 'src/aws-s3/aws-s3.service';
+import { SERVICE_UNAVAILABLE_MSG } from 'src/constants';
 
 @Injectable()
 export class FileStorageService {
@@ -18,12 +19,12 @@ export class FileStorageService {
 
     const bucketEnv: string = this.configService.get(bucket);
     
-    return await this.awsS3Service.upload(fileKey, buffer, bucketEnv).then((response) => {
-      const fileLocation = response['Location'];
-      return [fileKey, fileLocation];
-    }).catch((error) => {
-      throw new HttpException('The service responsible to persist your file is currently unavailable', HttpStatus.SERVICE_UNAVAILABLE);
-    });
+    const uploadedFile: S3.PutObjectOutput = await this.awsS3Service.upload(fileKey, buffer, bucketEnv)
+      .catch((error) => {
+        throw new ServiceUnavailableException(`File storage ${SERVICE_UNAVAILABLE_MSG}`, error);
+      })
+
+    return [fileKey, uploadedFile['Location']];
     
   }
 
@@ -36,13 +37,13 @@ export class FileStorageService {
 
     const fileObjects: ListObjectsV2Output = await this.awsS3Service.list(folderPrefix, bucketEnv);
 
-    let folderImages = {};
+    const fileUrls = {};
 
     for(let i = 0; i < fileObjects.Contents.length; i++) {
-      folderImages[fileObjects.Contents[i].Key] = `https://${bucketEnv}.${bucketProviderEnv}/${fileObjects.Contents[i].Key}`;
+      fileUrls[fileObjects.Contents[i].Key] = encodeURI(`https://${bucketEnv}.${bucketProviderEnv}/${fileObjects.Contents[i].Key}`);
     }
 
-    return folderImages;
+    return fileUrls;
   }
 
   async findOne(key: string, bucket: string) {

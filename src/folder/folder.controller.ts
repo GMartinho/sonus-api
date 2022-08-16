@@ -9,7 +9,6 @@ import { FolderEntity } from './entities/folder.entity';
 import { Express } from 'express';
 import { JwtAuthGuard } from './../auth/jwt-auth.guard';
 import { User } from '../user/user.decorator';
-import { UserEntity } from '../user/entities/user.entity';
 
 @ApiTags('Folder')
 @Controller('folders')

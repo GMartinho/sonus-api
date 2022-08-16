@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { S3 } from 'aws-sdk';
-import { DeleteObjectRequest, GetObjectRequest, PutObjectRequest, PutObjectOutput, GetObjectOutput, DeleteObjectOutput, ListObjectsRequest, ListObjectsOutput, ListObjectsV2Request, ListObjectsV2Output } from 'aws-sdk/clients/s3';
+import { DeleteObjectRequest, GetObjectRequest, PutObjectRequest, PutObjectOutput, GetObjectOutput, DeleteObjectOutput, ListObjectsV2Request, ListObjectsV2Output } from 'aws-sdk/clients/s3';
 
 @Injectable()
 export class AwsS3Service {

@@ -12,6 +12,10 @@ export class CreateUserDto {
     @ApiProperty()
     last_name: string;
 
+    @Length(1, 255)
+    @ApiProperty()
+    stage_name?: string;
+
     @IsNotEmpty()
     @Length(7, 320)
     @IsEmail()

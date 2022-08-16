@@ -15,6 +15,10 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     @ApiProperty({required: false})
     last_name: string;
 
+    @Length(1, 255)
+    @ApiProperty({required: false})
+    stage_name?: string;
+
     @IsNotEmpty()
     @Length(7, 320)
     @IsEmail()

@@ -27,5 +27,6 @@ export class FolderEntity implements folder {
 
     constructor(partial: Partial<FolderEntity>) {
         Object.assign(this, partial);
+        this.image = partial?.image?.split(':')[1];
     }
 }

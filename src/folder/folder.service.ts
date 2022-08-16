@@ -21,93 +21,62 @@ export class FolderService {
   constructor(private readonly prisma: PrismaService, private readonly fileStorage: FileStorageService) {}
 
   async create(createFolderDto: CreateFolderDto, user_id: string, image?: Express.Multer.File) : Promise<FolderEntity> {
+    const [ fileKey ] = image && await this.fileStorage.create(user_id, image, this.bucket, createFolderDto.parent_id);
 
-    try {
-
-      if (image) {
-        return await this.fileStorage.create(user_id, image, this.bucket, createFolderDto.parent_id).then(
-          async ([fileKey, fileLocation]) => {
-            createFolderDto.image = fileKey;
-            const createdFolder =  await this.prisma.folder.create({
-              data: {
-                ...createFolderDto,
-                user_id: user_id
-              }
-            });
-            return {
-              ...createdFolder, 
-              image: fileLocation
-            }
-        }).catch((error) => {
-          throw error;
-        });
+    return await this.prisma.folder.create({
+      data: {
+        user_id: user_id,
+        image: fileKey,
+        ...createFolderDto
       }
-
-      return await this.prisma.folder.create({
-        data: {
-          ...createFolderDto,
-          user_id: user_id
-        }
-      });
-
-    } catch(error) {
-
-      throw error;
-
-    }
+    });
 
   }
 
   async findAll({ name, parent_id = null, take = 10, cursor = new Date() }: FindManyFolderDto, user_id: string): Promise<FolderEntity[]> {
-
     const where: Prisma.folderWhereInput = name ? { name : { contains: name } } : undefined;
 
-    return await this.prisma.folder.findMany({
-        take,
-        where: {
-          parent_id: parent_id,
-          created_at: {
-            lt: cursor
-          },
-          ...where
+    const folders: FolderEntity[] = await this.prisma.folder.findMany({
+      take,
+      where: {
+        parent_id: parent_id,
+        created_at: {
+          lt: cursor
         },
-        orderBy: {
-          created_at: 'desc'
-        }
-      }).then(async (folders) => {
-        const fileObjects = await this.fileStorage.findAll(user_id, this.bucket, parent_id);
+        ...where
+      },
+      orderBy: {
+        created_at: 'desc'
+      }
+    })
 
-        folders.map((folder) => {
-          const { image } = folder;
+    const fileObjects = await this.fileStorage.findAll(user_id, this.bucket, parent_id);
 
-          folder.image = image ? fileObjects[image] : null;
-          
-          return folder;
-        });
+    folders.map((folder) => {
+      const { image } = folder;
 
-        return folders;
-      });
+      folder.image = image ? fileObjects[image] : null;
+      
+      return folder;
+    });
+
+    return folders;
   }
 
 
   async findOne(id: number) {
-
-    return await this.prisma.folder.findUnique({ 
+    const folder = await this.prisma.folder.findUnique({ 
       where: { 
         id: id
       } 
-    }).then(
-      async (folder) => {
-        const { image } = folder;
-
-        return { 
-          ...folder,
-          image: image ? await this.fileStorage.findOne(image, this.bucket) : null,
-        }
-
-    }).catch((error) => {
-      throw error;
     });
+
+    const { image } = folder;
+
+    return { 
+      ...folder,
+      image: image ? await this.fileStorage.findOne(image, this.bucket) : null,
+    }
   }
 
   async update(id: number, updateFolderDto: UpdateFolderDto, user_id: string, image?: Express.Multer.File) {

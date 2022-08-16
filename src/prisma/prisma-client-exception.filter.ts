@@ -19,7 +19,7 @@ export class PrismaClientExceptionFilter extends BaseExceptionFilter {
 
         return {
           statusCode: statusP2000,
-          message: messageP2000.length < 2 ? messageP2000.toString() : messageP2000,
+          message: messageP2000,
           error: 'Bad Request'
         }
       },
@@ -32,7 +32,7 @@ export class PrismaClientExceptionFilter extends BaseExceptionFilter {
 
         return {
           statusCode: statusP2002,
-          message: messageP2002.length < 2 ? messageP2002.toString() : messageP2002,
+          message: messageP2002,
           error: 'Conflict'
         }
       },
@@ -45,7 +45,7 @@ export class PrismaClientExceptionFilter extends BaseExceptionFilter {
 
         return {
           statusCode: statusP2012,
-          message: messageP2012.length < 2 ? messageP2012.toString() : messageP2012,
+          message: messageP2012,
           error: 'Bad Request'
         }
       },
@@ -59,48 +59,24 @@ export class PrismaClientExceptionFilter extends BaseExceptionFilter {
           message: messageP2025,
           error: 'Not Found'
         }
+      },
+      default: () => {
+        const statusDefault = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        return {
+          statusCode: statusDefault,
+          message: ['An unexpected error has occurred'],
+          error: 'Internal Server Error'
+        }
       }
     }
 
-    const { statusCode, message, error } = exceptions[exception.code]();
+    const { statusCode, message, error } = exceptions?.[exception?.code]?.() ?? exceptions.default();
 
     response.status(statusCode).json({
       statusCode: statusCode,
       message: message,
       error: error
     })
-
-		// switch (exception.code) {
-    //   case 'P2025':
-    //     const statusP2025 = HttpStatus.NOT_FOUND;
-
-    //     const messageP2025 = exception.meta['cause'];
-
-    //     response.status(statusP2025).json({
-    //       statusCode: statusP2025,
-    //       message: messageP2025,
-    //     });
-
-    //     break;
-
-    //   case 'P2002':
-    //     const statusP2002 = HttpStatus.CONFLICT;
-
-    //     const messageP2002 = exception.meta['target'].map((target) => {
-    //       return `This ${target} has already been registered`;
-    //     });
-
-    //     response.status(statusP2002).json({
-    //       statusCode: statusP2002,
-    //       message: messageP2002,
-    //     });
-
-    //     break;
-
-    //   default:
-    //     // default 500 error code
-    //     super.catch(exception, host);
-    //     break;
-    // }
   }
 }

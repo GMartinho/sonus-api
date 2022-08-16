@@ -13,6 +13,12 @@ export class UserEntity implements user_account {
     last_name: string;
 
     @ApiProperty()
+    stage_name: string;
+
+    @ApiProperty()
+    role: string;
+
+    @ApiProperty()
     email: string;
 
     @ApiProperty()

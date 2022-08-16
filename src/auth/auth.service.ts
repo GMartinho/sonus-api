@@ -4,6 +4,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { Auth } from './entities/auth.entity';
 import * as bcrypt from 'bcrypt';
 import { UserEntity } from '../user/entities/user.entity';
+import { INVALID_PASSWORD_MSG, NOT_FOUND_MSG } from '../constants';
 
 @Injectable()
 export class AuthService {
@@ -13,13 +14,13 @@ export class AuthService {
     const user: UserEntity = await this.prisma.user_account.findUnique({ where: { email: email } });
 
     if (!user) {
-      throw new NotFoundException(`User ${email} not found`);
+      throw new NotFoundException(`User ${email} ${NOT_FOUND_MSG}`);
     }
 
     const validPassword: boolean = await bcrypt.compare(password, user.password);
 
     if (!validPassword) {
-      throw new UnauthorizedException('Invalid password');
+      throw new UnauthorizedException(INVALID_PASSWORD_MSG);
     }
 
     return {
