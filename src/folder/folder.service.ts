@@ -3,16 +3,9 @@ import { FileStorageService } from 'src/file-storage/file-storage.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateFolderDto } from './dto/create-folder.dto';
 import { UpdateFolderDto } from './dto/update-folder.dto';
-import { v4 as uuid } from 'uuid';
-import { CreateFolderWithImageDto } from './dto/create-folder-with-image.dto';
 import { FolderEntity } from './entities/folder.entity';
-import { GetObjectOutput, PutObjectOutput } from 'aws-sdk/clients/s3';
-import { FileStorageResponse } from 'src/file-storage/interfaces/file-storage-response.interface';
 import { Prisma } from '@prisma/client';
-import { findManyCursorConnection } from '@devoxa/prisma-relay-cursor-connection';
-import { FindManyFolderDto } from './dto/find-many-folder.dto';
-import { UserEntity } from 'src/user/entities/user.entity';
-import { readdirSync } from 'fs';
+import { FindManyFolderDto } from './dto/find-many-folder.dto';;
 
 @Injectable()
 export class FolderService {
