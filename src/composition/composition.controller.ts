@@ -1,15 +1,33 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UseInterceptors, HttpCode, HttpStatus, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiConsumes, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { User } from 'src/user/user.decorator';
 import { CompositionService } from './composition.service';
 import { CreateCompositionDto } from './dto/create-composition.dto';
 import { UpdateCompositionDto } from './dto/update-composition.dto';
+import { CompositionEntity } from './entities/composition.entity';
 
+@ApiTags('Composition')
 @Controller('composition')
 export class CompositionController {
   constructor(private readonly compositionService: CompositionService) {}
 
   @Post()
-  create(@Body() createCompositionDto: CreateCompositionDto) {
-    return this.compositionService.create(createCompositionDto);
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('record'))
+  @ApiConsumes('multipart/form-data')
+  @ApiBearerAuth()
+  @ApiCreatedResponse({type: CompositionEntity})
+  @HttpCode(HttpStatus.ACCEPTED)
+  async create(@Body() createCompositionDto: CreateCompositionDto, @User('id') user_id: string, @UploadedFile() record: Express.Multer.File) : Promise<CompositionEntity> {
+    return new CompositionEntity(
+      await this.compositionService.create(
+        createCompositionDto,
+        user_id,
+        record
+      )
+    );
   }
 
   @Get()

@@ -13,7 +13,7 @@ export class AwsS3Service {
       Key: key
     }
 
-    return await s3.upload(params).promise();
+    return s3.upload(params).promise();
   }
 
   async list(prefix: string, bucket: string): Promise<ListObjectsV2Output> {
@@ -26,7 +26,7 @@ export class AwsS3Service {
       Delimiter: '/'
     }
 
-    return await s3.listObjectsV2(params).promise();
+    return s3.listObjectsV2(params).promise();
   }
 
   async get(key: string, bucket: string): Promise<GetObjectOutput> {
@@ -37,7 +37,7 @@ export class AwsS3Service {
       Key: key
     }
 
-    return await s3.getObject(params).promise();
+    return s3.getObject(params).promise();
   }
 
   async put(key: string, buffer: Buffer, bucket: string): Promise<PutObjectOutput> {
@@ -49,7 +49,7 @@ export class AwsS3Service {
       Key: key
     }
 
-    return await s3.putObject(params).promise();
+    return s3.putObject(params).promise();
   }
 
   async delete(key: string, bucket: string): Promise<DeleteObjectOutput> {
@@ -60,7 +60,7 @@ export class AwsS3Service {
       Key: key
     }
 
-    return await s3.deleteObject(params).promise();
+    return s3.deleteObject(params).promise();
   }
 
 }
