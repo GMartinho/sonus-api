@@ -5,6 +5,7 @@ import { FolderModule } from './folder/folder.module';
 import { FileStorageModule } from './file-storage/file-storage.module';
 import { AwsS3Module } from './aws-s3/aws-s3.module';
 import { AuthModule } from './auth/auth.module';
+import { CompositionModule } from './composition/composition.module';
 
 @Module({
   imports: [
@@ -13,7 +14,7 @@ import { AuthModule } from './auth/auth.module';
     FolderModule, 
     FileStorageModule, 
     AwsS3Module, 
-    AuthModule
+    AuthModule, CompositionModule
   ]
 })
 export class AppModule {}
