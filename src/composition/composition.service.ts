@@ -27,10 +27,9 @@ export class CompositionService {
         user_id: user_id,
         record: recordFileKey
       }
-    });
+    })
 
-    // POST REQ TO SONUS WORKER API TO GENERATE MIDI
-    // await this.httpService.post('URL_SONUS_WORKER', 'DADOS DA GRAVACAO', 'AUTENTICACAO')
+    await this.httpService.post('http://localhost:5000/api/v1/midi-transcriber', { record_key: recordFileKey, record_url: recordFileLocation }).toPromise()
 
     return composition;
   }

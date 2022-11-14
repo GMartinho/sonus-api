@@ -9,7 +9,7 @@ import { UpdateCompositionDto } from './dto/update-composition.dto';
 import { CompositionEntity } from './entities/composition.entity';
 
 @ApiTags('Composition')
-@Controller('composition')
+@Controller('compositions')
 export class CompositionController {
   constructor(private readonly compositionService: CompositionService) {}
 
