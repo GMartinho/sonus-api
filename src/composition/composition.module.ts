@@ -1,11 +1,8 @@
 import { Module } from '@nestjs/common';
 import { CompositionService } from './composition.service';
-import { CompositionController } from './composition.controller';
-import { HttpModule } from '@nestjs/axios';
+import { CompositionGateway } from './composition.gateway';
 
 @Module({
-  imports: [HttpModule],
-  controllers: [CompositionController],
-  providers: [CompositionService]
+  providers: [CompositionGateway, CompositionService],
 })
 export class CompositionModule {}

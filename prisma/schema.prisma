@@ -8,42 +8,50 @@ datasource db {
 }
 
 model user_account {
-  id          String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id          BigInt        @id @default(autoincrement())
+  uuid        String        @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  created_at  DateTime      @default(now()) @db.Timestamptz(3)
+  updated_at  DateTime      @default(now()) @db.Timestamptz(3)
   first_name  String        @db.Citext
   last_name   String        @db.Citext
   stage_name  String?
   role        String        @default("USER") @db.Citext
   email       String        @unique @db.Citext
   password    String
-  created_at  DateTime      @default(now()) @db.Timestamptz(3)
-  updated_at  DateTime      @default(now()) @db.Timestamptz(3)
   composition composition[]
   folder      folder[]
+
+  @@index([uuid])
 }
 
 model folder {
-  id           Int           @id @default(autoincrement())
-  user_id      String        @db.Uuid
-  parent_id    Int?
-  name         String
-  image        String?       @unique
-  created_at   DateTime      @default(now()) @db.Timestamptz(3)
-  updated_at   DateTime      @default(now()) @db.Timestamptz(3)
-  folder       folder?       @relation("folderTofolder_parent_id", fields: [parent_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  user_account user_account  @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  composition  composition[]
-  other_folder folder[]      @relation("folderTofolder_parent_id")
+  id                BigInt        @id @default(autoincrement())
+  user_account_uuid String        @db.Uuid
+  parent_folder_id  BigInt?
+  created_at        DateTime      @default(now()) @db.Timestamptz(3)
+  updated_at        DateTime      @default(now()) @db.Timestamptz(3)
+  name              String
+  image_path        String?
+  composition       composition[]
+  folder            folder?       @relation("folderTofolder", fields: [parent_folder_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  other_folder      folder[]      @relation("folderTofolder")
+  user_account      user_account  @relation(fields: [user_account_uuid], references: [uuid], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model composition {
-  id           Int          @id @default(autoincrement())
-  user_id      String       @db.Uuid
-  folder_id    Int?
-  name         String
-  record       String
-  midi_record  String?
-  created_at   DateTime     @default(now()) @db.Timestamptz(3)
-  updated_at   DateTime     @default(now()) @db.Timestamptz(3)
-  folder       folder?      @relation(fields: [folder_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  user_account user_account @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id                BigInt       @id @default(autoincrement())
+  uuid              String       @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_account_uuid String       @db.Uuid
+  folder_id         BigInt?
+  created_at        DateTime     @default(now()) @db.Timestamptz(3)
+  updated_at        DateTime     @default(now()) @db.Timestamptz(3)
+  name              String
+  record_path       String?
+  midi_path         String?
+  sheet_music_path  String?
+  lilypond_path     String?
+  folder            folder?      @relation(fields: [folder_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user_account      user_account @relation(fields: [user_account_uuid], references: [uuid], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([uuid])
 }
